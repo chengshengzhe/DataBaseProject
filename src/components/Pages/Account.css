@@ -1,0 +1,25 @@
+button {
+    top:50%;
+    background-color:#0a0a23;
+    color: #fff;
+    display: block;
+    margin:5px auto;
+    padding:2px;
+    width:30%;
+}
+
+#registration-form,#login-form{
+    margin-bottom:20px;
+    text-align:center;
+}
+
+input {
+    display: block;
+    margin:5px auto;
+    padding:2px;
+    width:30%;
+}
+
+h3,p{
+    text-Align:center;
+}
