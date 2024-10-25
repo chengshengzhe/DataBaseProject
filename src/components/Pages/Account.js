@@ -110,7 +110,7 @@ export const Account = () => {
                 type="text" 
                 placeholder="Email" 
                 value={regEmail} 
-                onChange={(e) => setEmail(e.target.value)} 
+                onChange={(e) => setRegEmail(e.target.value)} 
               />
               <button onClick={handleRegister}>註冊</button>
               <button onClick={() => setShowRegister(false)}>返回</button>
