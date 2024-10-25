@@ -3,10 +3,10 @@ import "./Account.css";
 
 export const Account = () => {
   // State for login and registration forms
-  const [regID, setRegID] = useState('');
+  const [regEmail, setRegEmail] = useState('');
   const [regName, setRegName] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [loginID, setLoginID] = useState('');
+  const [loginName, setLoginName] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   
   // State to manage login and registration visibility
@@ -17,7 +17,7 @@ export const Account = () => {
 
   // Registration function
   const handleRegister = () => {
-    console.log(`Registering: UserID = ${regID}, Name = ${regName}, Password = ${regPassword}`);
+    console.log(`Registering: Name = ${regName}, Password = ${regPassword},Email = ${regEmail},`);
     
     // Simulating account creation
     setAccountExists(true);
@@ -27,26 +27,26 @@ export const Account = () => {
     setShowRegister(false);
     
     // Reset registration fields
-    setRegID('');
     setRegName('');
     setRegPassword('');
+    setRegEmail('');
   };
 
   // Login function
   const handleLogin = () => {
-    console.log(`Logging in: UserID = ${loginID}, Password = ${loginPassword}`);
+    console.log(`Logging in: UserName = ${loginName}, Password = ${loginPassword}`);
     
     // Simulating login
-    if (loginID === regID && loginPassword === regPassword) {
+    if (loginName === regName && loginPassword === regPassword) {
       setLoggedIn(true);
-      setAccountInfo({ userID: loginID, name: regName });
-      alert('Logged in successfully!');
+      setAccountInfo({ userName: loginName, name: regName });
+      alert('登入成功');
     } else {
       alert('Incorrect credentials. Please try again.');
     }
 
     // Reset login fields
-    setLoginID('');
+    setLoginName('');
     setLoginPassword('');
   };
 
@@ -54,7 +54,7 @@ export const Account = () => {
   const handleLogout = () => {
     setLoggedIn(false);
     setAccountInfo(null);
-    alert('登出成功!');
+    alert('登出成功');
   };
 
   return (
@@ -73,9 +73,9 @@ export const Account = () => {
           <h3>登入帳號</h3>
           <input 
             type="text" 
-            placeholder="UserID" 
-            value={loginID} 
-            onChange={(e) => setLoginID(e.target.value)} 
+            placeholder="UserName" 
+            value={loginName} 
+            onChange={(e) => setLoginName(e.target.value)} 
           />
           <input 
             type="password" 
@@ -96,13 +96,7 @@ export const Account = () => {
             <div id="registration-form">
               <input 
                 type="text" 
-                placeholder="UserID" 
-                value={regID} 
-                onChange={(e) => setRegID(e.target.value)} 
-              />
-              <input 
-                type="text" 
-                placeholder="Name" 
+                placeholder="UserName" 
                 value={regName} 
                 onChange={(e) => setRegName(e.target.value)} 
               />
@@ -111,6 +105,12 @@ export const Account = () => {
                 placeholder="Password" 
                 value={regPassword} 
                 onChange={(e) => setRegPassword(e.target.value)} 
+              />
+              <input 
+                type="text" 
+                placeholder="Email" 
+                value={regEmail} 
+                onChange={(e) => setEmail(e.target.value)} 
               />
               <button onClick={handleRegister}>註冊</button>
               <button onClick={() => setShowRegister(false)}>返回</button>
