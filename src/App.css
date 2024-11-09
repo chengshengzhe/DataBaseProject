@@ -10,3 +10,17 @@ body {
 .pages {
   color: #0400f0;
 }
+
+.book-list {
+  list-style-type: none;
+  padding-left: 0;
+  text-align: center;
+}
+
+.book-item {
+  display: inline-block;
+  color: #003366;
+  text-align: left;
+  font-size:20px;
+  width: 1000px;
+}
