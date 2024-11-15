@@ -26,7 +26,7 @@ async function connectToDB() {
   try {
     const pool = await sql.connect(dbConfig);
     console.log('資料庫連接成功');
-    return pool; // 返回連接池
+    return pool;
   } catch (err) {
     console.error('資料庫連接錯誤:', err.message);
     console.error('Stack trace:', err.stack);
@@ -34,7 +34,7 @@ async function connectToDB() {
   }
 }
 
-// 測試查詢
+// 查詢
 async function testQuery() {
   try {
     const pool = await connectToDB();
@@ -56,6 +56,7 @@ app.get("/api/books", async (req, res) => {
         b.title, 
         b.author, 
         b.publishedYear,
+        b.category,
         COUNT(c.copyID) AS availableCopies
       FROM 
         book b
@@ -64,7 +65,7 @@ app.get("/api/books", async (req, res) => {
       ON 
         b.bookID = c.bookID AND c.status = 'available' -- 只計算可用的副本
       GROUP BY 
-        b.bookID, b.title, b.author, b.publishedYear;
+        b.bookID, b.title, b.author, b.publishedYear, b.category;
     `;
 
     const result = await sql.query(query);
