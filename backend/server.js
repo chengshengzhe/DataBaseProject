@@ -1,28 +1,24 @@
-import https from 'https'; 
-import fs from 'fs';  
 import express from 'express';
 import cors from 'cors';
 import sql from 'mssql';
 import dotenv from 'dotenv';
 
 const app = express();
-const PORT = 5000;
 
-const httpsOptions = {
-  key: fs.readFileSync('./certs/key.pem'),   // 私鑰檔案
-  cert: fs.readFileSync('./certs/cert.pem') // 憑證檔案
-};
+const port = process.env.PORT || 5000;
 
-dotenv.config({ path: '../userinfo.env' }); // 指定 .env 檔案路徑
+dotenv.config(); // Vercel 環境變數會自動處理，因此可以省略 path 參數
+
 const dbConfig = {
   server: process.env.DB_SERVER,
   database: process.env.DB_DATABASE,
   user: 'testuser',
   password: process.env.DB_PASSWORD,
   options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  },  port: 1433,
+    encrypt: true,  // 使用加密連接
+    trustServerCertificate: true,  // 避免 SSL 驗證錯誤
+  },
+  port: 1433,  // 默認 SQL Server 端口
 };
 
 // 測試資料庫連接
@@ -51,6 +47,28 @@ async function testQuery() {
 app.use(cors());
 app.use(express.json());
 
+// 根路由，測試資料庫
+app.get("/", async (req, res) => {
+  try {
+    const pool = await connectToDB();
+    const result = await pool.request().query(`
+      SELECT 
+        b.bookID, 
+        b.title, 
+        b.author, 
+        b.publishedYear,
+        b.category
+      FROM 
+        book b
+    `);
+    const books = result.recordset;  // 獲取查詢結果
+    res.json(books);  // 返回結果
+  } catch (err) {
+    console.error("主頁書籍查詢失敗:", err.message);
+    res.status(500).send("伺服器錯誤");
+  }
+});
+
 // 查詢書籍列表和可用副本數量
 app.get("/api/books", async (req, res) => {
   try {
@@ -67,13 +85,13 @@ app.get("/api/books", async (req, res) => {
       LEFT JOIN 
         copy c
       ON 
-        b.bookID = c.bookID AND c.status = 'available' -- 只計算可用的副本
+        b.bookID = c.bookID AND c.status = 'available'  // 只計算可用的副本
       GROUP BY 
         b.bookID, b.title, b.author, b.publishedYear, b.category;
     `;
 
     const result = await sql.query(query);
-    res.json(result.recordset); // 返回查詢結果
+    res.json(result.recordset);  // 返回查詢結果
   } catch (err) {
     console.error("查詢書籍失敗:", err.message);
     res.status(500).send("伺服器錯誤");
@@ -81,8 +99,11 @@ app.get("/api/books", async (req, res) => {
 });
 
 // 啟動伺服器並測試資料庫
-https.createServer(httpsOptions, app).listen(PORT, async () => {
-    console.log(`server is running on https://localhost:${PORT}`);
-
-    await testQuery();
-});
+export default async function handler(req, res) {
+  try {
+    await testQuery();  // 測試資料庫連接
+    res.status(200).send("伺服器運行正常");
+  } catch (error) {
+    res.status(500).send("伺服器錯誤");
+  }
+}
