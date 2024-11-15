@@ -3,10 +3,10 @@ import React, { useState, useEffect } from "react";
 export const BookList = () => {
   const [books, setBooks] = useState([]);  // 存儲從後端獲取的書籍資料
   const [isFetched, setIsFetched] = useState(false);  // 記錄是否已經獲取資料
+  const backend_ip = "http://192.168.50.120:5000/api/books";
 
-  // 用來從後端 API 拉取書籍資料
   const fetchBooks = () => {
-    fetch(process.env.Backend_ip_address)
+    fetch(backend_ip)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
