@@ -1,6 +1,6 @@
 import "./App.css";
 import NavBar from "./components/NavBar";
-import { BrowserRouter as Router,  Route, Routes } from "react-router-dom";
+import { HashRouter as Router,  Route, Routes, Navigate } from "react-router-dom";
 import { Home } from "./components/Pages/Home";
 import { BookList } from "./components/Pages/BookList";
 import { Account } from "./components/Pages/Account";
@@ -12,7 +12,8 @@ function App() {
         <NavBar />
         <div className="pages">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Navigate to="/home" />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/BookList" element={<BookList />} />
             <Route path="/Account" element={<Account />} />
           </Routes>
