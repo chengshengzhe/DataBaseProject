@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import config from '../../config.json';
 
 export const BookList = () => {
-  const [books, setBooks] = useState([]);  // 存儲從後端獲取的書籍資料
-  const [isFetched, setIsFetched] = useState(false);  // 記錄是否已經獲取資料
+  const [books, setBooks] = useState([]);
+  const [isFetched, setIsFetched] = useState(false);
 
 
   const fetchBooks = () => {
@@ -24,12 +24,10 @@ export const BookList = () => {
 
   return (
     <div style={{ textAlign: "center" }}>
-      <h1 style={{ fontSize: "2rem" }}>BookList</h1>  {/* 修改標題字體大小 */}
+      <h3 style={{ fontSize: "36px" }}>BookList</h3>
 
-      {/* 當按下按鈕時，觸發 fetchBooks 函數來獲取書籍資料 */}
-      <button onClick={fetchBooks} style={{ fontSize: "24px" }}>Refresh</button>  {/* 修改按鈕字體大小 */}
+      <button onClick={fetchBooks} style={{ fontSize: "24px" }}>Refresh</button>
 
-      {/* 顯示從後端取得的書籍資料 */}
       {isFetched ? (
         <table style={{ margin: "20px auto", borderCollapse: "collapse", width: "80%" }}>
           <thead>
@@ -60,7 +58,7 @@ export const BookList = () => {
           </tbody>
         </table>
       ) : (
-        <p style={{ fontSize: "24px" }}>No books available.</p>
+        <h3 style={{ fontSize: "36px" }}>No books available.</h3>
       )}
     </div>
   );

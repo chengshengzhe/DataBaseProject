@@ -4,11 +4,13 @@
 }
 
 body {
-  background-color: #71919e;
+  background-color: #508194;
+  
 }
 
 .pages {
-  color: #0400f0;
+  color: #020150;
+  margin-top: 60px;
 }
 
 .book-list {

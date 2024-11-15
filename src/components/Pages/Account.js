@@ -2,73 +2,104 @@ import React, { useState } from 'react';
 import "./Account.css";
 
 export const Account = () => {
-  // State for login and registration forms
   const [regEmail, setRegEmail] = useState('');
   const [regName, setRegName] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [loginName, setLoginName] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   
-  // State to manage login and registration visibility
-  const [loggedIn, setLoggedIn] = useState(false); // Simulates if the user is logged in
-  const [accountExists, setAccountExists] = useState(false); // Simulates if the user has an account
-  const [showRegister, setShowRegister] = useState(false); // To toggle registration form visibility
-  const [accountInfo, setAccountInfo] = useState(null); // Stores account info once logged in
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [accountInfo, setAccountInfo] = useState(null);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
-  // Registration function
-  const handleRegister = () => {
-    console.log(`Registering: Name = ${regName}, Password = ${regPassword},Email = ${regEmail},`);
-    
-    // Simulating account creation
-    setAccountExists(true);
-    alert('Account created successfully! Please login.');
-    
-    // Hide the registration form after registering
-    setShowRegister(false);
-    
-    // Reset registration fields
-    setRegName('');
-    setRegPassword('');
-    setRegEmail('');
+  const showMessage = (msg, type) => {
+    setMessage(msg);
+    setMessageType(type);
+    setTimeout(() => {
+      setMessage("");
+      setMessageType("");
+    }, 2000);
   };
 
-  // Login function
-  const handleLogin = () => {
-    console.log(`Logging in: UserName = ${loginName}, Password = ${loginPassword}`);
-    
-    // Simulating login
-    if (loginName === regName && loginPassword === regPassword) {
-      setLoggedIn(true);
-      setAccountInfo({ userName: loginName, name: regName });
-      alert('登入成功');
-    } else {
-      alert('Incorrect credentials. Please try again.');
+  const handleRegister = async () => {
+    if (!regName || !regEmail || !regPassword) {
+      showMessage("所有欄位均為必填", "error");
+      return;
     }
 
-    // Reset login fields
-    setLoginName('');
-    setLoginPassword('');
+    try {
+      const response = await fetch("https://localhost:5000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: regName, email: regEmail, password: regPassword }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        showMessage("帳號創建成功！請登入", "success");
+        setShowRegister(false);
+        setRegName('');
+        setRegEmail('');
+        setRegPassword('');
+      } else {
+        showMessage(data.error || "註冊失敗", "error");
+      }
+    } catch (err) {
+      console.error("註冊錯誤:", err);
+      showMessage("伺服器錯誤", "error");
+    }
   };
 
-  // Logout function
+  const handleLogin = async () => {
+    if (!loginName || !loginPassword) {
+      showMessage("所有欄位均為必填", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch("https://localhost:5000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: loginName, password: loginPassword }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        showMessage("登入成功", "success");
+        setLoggedIn(true);
+        setAccountInfo({ userName: loginName });
+        setLoginName('');
+        setLoginPassword('');
+      } else {
+        showMessage(data.error || "登入失敗", "error");
+      }
+    } catch (err) {
+      console.error("登入錯誤:", err);
+      showMessage("伺服器錯誤", "error");
+    }
+  };
+
   const handleLogout = () => {
     setLoggedIn(false);
     setAccountInfo(null);
-    alert('登出成功');
+    showMessage("登出成功", "success");
   };
 
   return (
     <div>
       {loggedIn ? (
-        //登入顯示帳戶資訊
         <div>
           <h3>帳戶資訊</h3>
-          <p><strong>UserID:</strong> {accountInfo.userID}</p>
-          <p><strong>Name:</strong> {accountInfo.name}</p>
+          <p><strong>UserName:</strong> {accountInfo.userName}</p>
           <button onClick={handleLogout}>登出</button>
         </div>
       ) : (
-        //未登入顯示登入表單
         <div>
           <h3>登入帳號</h3>
           <input 
@@ -86,7 +117,6 @@ export const Account = () => {
           <button onClick={handleLogin}>登入</button>
 
           <h3>註冊帳號</h3>
-          {/*註冊按鈕顯示註冊*/}
           {!showRegister && (
             <button onClick={() => setShowRegister(true)}>
               註冊
@@ -118,6 +148,8 @@ export const Account = () => {
           )}
         </div>
       )}
+      {/* 將訊息放在整個表單的最下方 */}
+      {message && <p className={`message ${messageType}`}>{message}</p>}
     </div>
   );
 };
