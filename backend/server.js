@@ -1,3 +1,5 @@
+import https from 'https'; 
+import fs from 'fs';  
 import express from 'express';
 import cors from 'cors';
 import sql from 'mssql';
@@ -6,10 +8,12 @@ import dotenv from 'dotenv';
 const app = express();
 const PORT = 5000;
 
-dotenv.config({ path: '../userinfo.env' }); // 指定 .env 檔案路徑
-console.log('DB_SERVER:', process.env.DB_SERVER);
-console.log('DB_DATABASE:', process.env.DB_DATABASE);
+const httpsOptions = {
+  key: fs.readFileSync('./certs/key.pem'),   // 私鑰檔案
+  cert: fs.readFileSync('./certs/cert.pem') // 憑證檔案
+};
 
+dotenv.config({ path: '../userinfo.env' }); // 指定 .env 檔案路徑
 const dbConfig = {
   server: process.env.DB_SERVER,
   database: process.env.DB_DATABASE,
@@ -29,7 +33,7 @@ async function connectToDB() {
     return pool;
   } catch (err) {
     console.error('資料庫連接錯誤:', err.message);
-    console.error('Stack trace:', err.stack);
+    console.error('Stack:', err.stack);
     throw err;
   }
 }
@@ -77,7 +81,8 @@ app.get("/api/books", async (req, res) => {
 });
 
 // 啟動伺服器並測試資料庫
-app.listen(PORT, async () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  await testQuery(); // 啟動時執行查詢測試
+https.createServer(httpsOptions, app).listen(PORT, async () => {
+    console.log(`server is running on https://localhost:${PORT}`);
+
+    await testQuery();
 });

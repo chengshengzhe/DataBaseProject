@@ -23,3 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 
 userinfo.env
+src/config.json
+backend/certs/cert.pem
+backend/certs/key.pem

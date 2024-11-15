@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
+import config from '../../config.json';
 
 export const BookList = () => {
   const [books, setBooks] = useState([]);  // 存儲從後端獲取的書籍資料
   const [isFetched, setIsFetched] = useState(false);  // 記錄是否已經獲取資料
-  const backend_ip = "http://192.168.50.120:5000/api/books";
+
 
   const fetchBooks = () => {
-    fetch(backend_ip)
+    const BACKEND_URL = config.BACKEND_URL;
+    fetch(BACKEND_URL)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
