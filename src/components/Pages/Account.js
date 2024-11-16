@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import "./Account.css";
+import config from '../../config.json';
 
 export const Account = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regName, setRegName] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [loginName, setLoginName] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [SignInName, setSignInName] = useState('');
+  const [SignInPassword, setSignInPassword] = useState('');
+  const [borrowedBooks, setBorrowedBooks] = useState([]);
   
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [loggedIn, setSignedIn] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
   const [accountInfo, setAccountInfo] = useState(null);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
@@ -23,14 +25,25 @@ export const Account = () => {
     }, 2000);
   };
 
-  const handleRegister = async () => {
+  // Local Storage 中的登入狀態
+  useEffect(() => {
+    const storedUser = localStorage.getItem('accountInfo');
+    if (storedUser) {
+      setAccountInfo(JSON.parse(storedUser));
+      setSignedIn(true);
+    }
+  }, []);
+  
+
+  const handleSignUp = async () => {
     if (!regName || !regEmail || !regPassword) {
       showMessage("所有欄位均為必填", "error");
       return;
     }
-
+    
+    const SignUp_URL = config.SIGNUP_URL;
     try {
-      const response = await fetch("https://localhost:5000/api/register", {
+      const response = await fetch(SignUp_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,7 +54,7 @@ export const Account = () => {
       const data = await response.json();
       if (response.ok) {
         showMessage("帳號創建成功！請登入", "success");
-        setShowRegister(false);
+        setShowSignUp(false);
         setRegName('');
         setRegEmail('');
         setRegPassword('');
@@ -54,28 +67,30 @@ export const Account = () => {
     }
   };
 
-  const handleLogin = async () => {
-    if (!loginName || !loginPassword) {
+  const handleSignIn = async () => {
+    if (!SignInName || !SignInPassword) {
       showMessage("所有欄位均為必填", "error");
       return;
     }
-
+    const SignIn_URL = config.SIGNIN_URL;
     try {
-      const response = await fetch("https://localhost:5000/api/login", {
+      const response = await fetch(SignIn_URL , {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username: loginName, password: loginPassword }),
+        body: JSON.stringify({ username: SignInName, password: SignInPassword }),
       });
 
       const data = await response.json();
       if (response.ok) {
         showMessage("登入成功", "success");
-        setLoggedIn(true);
-        setAccountInfo({ userName: loginName });
-        setLoginName('');
-        setLoginPassword('');
+        setSignedIn(true);
+        const userInfo = { userID: data.userID, userName: data.userName };
+        setAccountInfo(userInfo);
+        localStorage.setItem('accountInfo', JSON.stringify(userInfo));
+        setSignInName('');
+        setSignInPassword('');
       } else {
         showMessage(data.error || "登入失敗", "error");
       }
@@ -85,19 +100,45 @@ export const Account = () => {
     }
   };
 
-  const handleLogout = () => {
-    setLoggedIn(false);
+  const handleSignout = () => {
+    setSignedIn(false);
     setAccountInfo(null);
+    localStorage.removeItem('accountInfo');
     showMessage("登出成功", "success");
   };
 
+  const fetchBorrowedBooks = async () => {
+    if (!accountInfo?.userID) return;
+  
+    try {
+      const response = await fetch(`${config.BACKEND_URL}/api/userBooks/${accountInfo.userID}`);
+      const data = await response.json();
+      setBorrowedBooks(data);
+    } catch (err) {
+      console.error("無法獲取借閱書籍:", err.message);
+      showMessage("伺服器錯誤", "error");
+    }
+  };
   return (
     <div>
       {loggedIn ? (
         <div>
-          <h3>帳戶資訊</h3>
+          <h3>Account Information</h3>
           <p><strong>UserName:</strong> {accountInfo.userName}</p>
-          <button onClick={handleLogout}>登出</button>
+          <button onClick={handleSignout}>Sign out</button>
+          <h3>當前借閱的書籍</h3>
+          {borrowedBooks.length > 0 ? (
+            <ul>
+              {borrowedBooks.map((book, index) => (
+                <li key={index}>
+                  {book.title} by {book.author} (Copy ID: {book.copyID})
+                  借閱日期: {new Date(book.borrowDate).toLocaleDateString()}
+                </li>
+              ))}
+            </ul>
+          ) : (
+          <p>無借閱中的書籍</p>
+          )}
         </div>
       ) : (
         <div>
@@ -105,25 +146,25 @@ export const Account = () => {
           <input 
             type="text" 
             placeholder="UserName" 
-            value={loginName} 
-            onChange={(e) => setLoginName(e.target.value)} 
+            value={SignInName} 
+            onChange={(e) => setSignInName(e.target.value)} 
           />
           <input 
             type="password" 
             placeholder="Password" 
-            value={loginPassword} 
-            onChange={(e) => setLoginPassword(e.target.value)} 
+            value={SignInPassword} 
+            onChange={(e) => setSignInPassword(e.target.value)} 
           />
-          <button onClick={handleLogin}>登入</button>
+          <button onClick={handleSignIn}>Sign In</button>
 
-          <h3>註冊帳號</h3>
-          {!showRegister && (
-            <button onClick={() => setShowRegister(true)}>
-              註冊
+          <h3>註冊帳號(Email格式即可)</h3>
+          {!showSignUp && (
+            <button onClick={() => setShowSignUp(true)}>
+              Sign up
             </button>
           )}
-          {showRegister && (
-            <div id="registration-form">
+          {showSignUp && (
+            <div id="SignUpration-form">
               <input 
                 type="text" 
                 placeholder="UserName" 
@@ -142,13 +183,13 @@ export const Account = () => {
                 value={regEmail} 
                 onChange={(e) => setRegEmail(e.target.value)} 
               />
-              <button onClick={handleRegister}>註冊</button>
-              <button onClick={() => setShowRegister(false)}>返回</button>
+              <button onClick={handleSignUp}>Sign up</button>
+              <button onClick={() => setShowSignUp(false)}>Return</button>
             </div>
           )}
         </div>
       )}
-      {/* 將訊息放在整個表單的最下方 */}
+
       {message && <p className={`message ${messageType}`}>{message}</p>}
     </div>
   );
