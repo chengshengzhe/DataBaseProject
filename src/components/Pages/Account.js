@@ -9,7 +9,7 @@ export const Account = () => {
   const [SignInName, setSignInName] = useState('');
   const [SignInPassword, setSignInPassword] = useState('');
   const [borrowedBooks, setBorrowedBooks] = useState([]);
-  
+  const [returnedBooks, setReturnedBooks] = useState([]);
   const [loggedIn, setSignedIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [accountInfo, setAccountInfo] = useState(null);
@@ -33,6 +33,11 @@ export const Account = () => {
       setSignedIn(true);
     }
   }, []);
+  useEffect(() => {
+    if (accountInfo?.userID) {
+      fetchBorrowedBooks();
+    }
+  }, [accountInfo]);
   
 
   const handleSignUp = async () => {
@@ -106,6 +111,31 @@ export const Account = () => {
     localStorage.removeItem('accountInfo');
     showMessage("登出成功", "success");
   };
+  const handleReturnBook = async (copyID) => {
+    console.log("Return Request:", { copyID, userID: accountInfo.userID }); 
+    try {
+        const response = await fetch(`${config.BACKEND_URL}/api/returnBook`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ copyID, userID: accountInfo.userID }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showMessage('書籍歸還成功', 'success');
+            fetchBorrowedBooks(); 
+        } else {
+            showMessage(data.error || '書籍歸還失敗', 'error');
+        }
+    } catch (error) {
+        console.error('歸還書籍錯誤:', error.message);
+        showMessage('伺服器錯誤', 'error');
+    }
+};
+
 
   const fetchBorrowedBooks = async () => {
     if (!accountInfo?.userID) return;
@@ -126,18 +156,25 @@ export const Account = () => {
           <h3>Account Information</h3>
           <p><strong>UserName:</strong> {accountInfo.userName}</p>
           <button onClick={handleSignout}>Sign out</button>
-          <h3>當前借閱的書籍</h3>
+          <h3>目前借閱的書籍</h3>
           {borrowedBooks.length > 0 ? (
-            <ul>
-              {borrowedBooks.map((book, index) => (
-                <li key={index}>
-                  {book.title} by {book.author} (Copy ID: {book.copyID})
-                  借閱日期: {new Date(book.borrowDate).toLocaleDateString()}
+            <ul className="borrowed-books-list">
+              {borrowedBooks.map(book => (
+                <li key={book.borrowID} className="borrowed-book-item">
+                  <strong>{book.title}</strong> <h>_</h>by {book.author} (Due: {new Date(book.dueDate).toLocaleDateString()})
+                  <button
+                  className="return-button"
+                  onClick={() => handleReturnBook(book.copyID)}
+                  >
+                  歸還
+                  </button>
                 </li>
               ))}
             </ul>
+            
           ) : (
-          <p>無借閱中的書籍</p>
+          <p>目前沒有借閱的書籍。</p>
+          
           )}
         </div>
       ) : (

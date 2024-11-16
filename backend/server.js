@@ -33,7 +33,6 @@ const dbConfig = {
 async function connectToDB() {
   try {
     const pool = await sql.connect(dbConfig);
-    console.log('資料庫連接成功');
     return pool;
   } catch (err) {
     console.error('資料庫連接失敗:', err.message);
@@ -163,6 +162,36 @@ app.post('/api/SignIn', async (req, res) => {
 });
 
 // 檢查用戶借閱書籍數量
+app.get('/api/userBooks/:userID/returned', async (req, res) => {
+  const { userID } = req.params;
+
+  if (!userID) {
+    return res.status(400).json({ error: 'userID 為必填' });
+  }
+
+  try {
+    const pool = await connectToDB();
+
+    const query = `
+      SELECT b.bookID, b.title, b.author, c.copyID, br.borrowDate, br.returnDate
+      FROM borrowing br
+      JOIN copy c ON br.copyID = c.copyID
+      JOIN book b ON c.bookID = b.bookID
+      WHERE br.userID = @UserID AND br.status = 'returned';
+    `;
+    const result = await pool.request()
+      .input('UserID', sql.Int, userID)
+      .query(query);
+
+    res.status(200).json(result.recordset);
+  } catch (err) {
+    console.error('查詢借閱書籍失敗:', err.message);
+    res.status(500).json({ error: '伺服器錯誤' });
+  }
+});
+
+
+// 檢查用戶借閱書籍數量
 app.get('/api/userBooks/:userID', async (req, res) => {
   const { userID } = req.params;
 
@@ -174,7 +203,7 @@ app.get('/api/userBooks/:userID', async (req, res) => {
     const pool = await connectToDB();
 
     const query = `
-      SELECT b.bookID, b.title, b.author, c.copyID, br.borrowDate
+      SELECT b.bookID, b.title, b.author, c.copyID, br.borrowDate, br.dueDate
       FROM borrowing br
       JOIN copy c ON br.copyID = c.copyID
       JOIN book b ON c.bookID = b.bookID
@@ -191,7 +220,51 @@ app.get('/api/userBooks/:userID', async (req, res) => {
   }
 });
 
+// 歸還書本
+app.post('/api/returnBook', async (req, res) => {
+  const { copyID, userID } = req.body;
 
+  try{
+    const pool = await connectToDB();
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
+    const queryBorrowing = `
+      UPDATE borrowing
+      SET returnDate = GETDATE(), status = 'returned'
+      WHERE copyID = @copyID AND userID = @userID AND status = 'borrowed';
+    `;
+    const resultBorrowing = await transaction.request()
+    .input('copyID', sql.Int, copyID)
+    .input('userID', sql.Int, userID)
+    .query(queryBorrowing);
+
+    if (resultBorrowing.rowsAffected[0] === 0) {
+      await transaction.rollback();
+      return res.status(400).json({ error: '找不到對應的借閱紀錄或該書已歸還' });
+    }
+
+    const queryUpdateBooks = `
+      UPDATE copy
+      SET status = 'available'
+      WHERE copyID = @copyID;
+    `;
+
+    const resultUpdateBooks = await transaction.request()
+    .input('copyID', sql.Int, copyID)
+    .query(queryUpdateBooks);
+
+    if (resultUpdateBooks.rowsAffected[0] === 0) {
+      await transaction.rollback();
+      return res.status(500).json({ error: '庫存更新失敗' });
+    }
+
+    await transaction.commit();
+    res.json({ message: '書籍歸還成功，庫存已更新', copyID });
+  } catch (error) {
+    console.error('歸還書籍失敗:', error);
+    res.status(500).json({ error: '伺服器錯誤，請稍後再試' });
+  }
+});
 
 app.post('/api/borrowBook', async (req, res) => {
   const { userID, bookID } = req.body;
@@ -203,7 +276,7 @@ app.post('/api/borrowBook', async (req, res) => {
   try {
     const pool = await connectToDB();
 
-    // 檢查用戶是否達到借閱上限
+    // 是否達到借閱上限
     const countQuery = `
       SELECT COUNT(*) AS borrowedCount
       FROM borrowing
@@ -266,6 +339,39 @@ app.post('/api/borrowBook', async (req, res) => {
   }
 });
 
+app.get("/api/mostBorrowedBooks", async (req, res) => {
+  try {
+    const pool = await connectToDB();
+    const queryMostBorrowed = `
+      SELECT TOP 1 b.title, COUNT(br.copyID) AS borrowCount
+      FROM borrowing br
+      JOIN copy c ON br.copyID = c.copyID
+      JOIN book b ON c.bookID = b.bookID
+      GROUP BY b.title
+      ORDER BY COUNT(br.copyID) DESC;
+    `;
+    const queryMostUsers = `
+      SELECT TOP 1 b.title, COUNT(DISTINCT br.userID) AS userCount
+      FROM borrowing br
+      JOIN copy c ON br.copyID = c.copyID
+      JOIN book b ON c.bookID = b.bookID
+      GROUP BY b.title
+      ORDER BY COUNT(DISTINCT br.userID) DESC;
+    `;
+    const [mostBorrowedResult, mostUsersResult] = await Promise.all([
+      pool.request().query(queryMostBorrowed),
+      pool.request().query(queryMostUsers),
+    ]);
+
+    res.status(200).json({
+      mostBorrowed: mostBorrowedResult.recordset[0],
+      mostUsers: mostUsersResult.recordset[0],
+    });
+  } catch (err) {
+    console.error("查詢熱門書籍失敗:", err.message);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
 
 // 啟動伺服器
 https.createServer(httpsOptions, app).listen(PORT, () => {

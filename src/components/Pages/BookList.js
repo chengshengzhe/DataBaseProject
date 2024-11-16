@@ -8,6 +8,7 @@ export const BookList = (userID) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+  const accountInfo = JSON.parse(localStorage.getItem("accountInfo")) || null;
 
   const showMessage = (msg, type) => {
     setMessage(msg);
@@ -57,7 +58,7 @@ export const BookList = (userID) => {
   
       if (response.ok) {
         showMessage("借閱成功", "success");
-        fetchBooks(); // 更新書籍列表
+        fetchBooks(); 
       } else {
         showMessage(data.error || "借閱失敗", "error");
       }
@@ -108,7 +109,7 @@ export const BookList = (userID) => {
                 <td style={{ padding: "25px", border: "2px solid #ddd" }}>
                 <button 
                   onClick={() => borrowBook(book.bookID)} 
-                  disabled={borrowedCount >= 3 || book.availableCopies === 0}
+                  disabled={borrowedCount >= 3 || book.availableCopies === 0||(!accountInfo || !accountInfo.userID)}
                   style={{ width:"100px",padding: "10px", fontSize: "24px", cursor: "pointer" }}
                 >
                   借閱
