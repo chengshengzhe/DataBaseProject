@@ -161,7 +161,7 @@ app.post('/api/SignIn', async (req, res) => {
   }
 });
 
-// 檢查用戶借閱書籍數量
+// 檢查用戶借閱歷史
 app.get('/api/userBooks/:userID/returned', async (req, res) => {
   const { userID } = req.params;
 
@@ -191,7 +191,7 @@ app.get('/api/userBooks/:userID/returned', async (req, res) => {
 });
 
 
-// 檢查用戶借閱書籍數量
+// 檢查用戶借閱數量
 app.get('/api/userBooks/:userID', async (req, res) => {
   const { userID } = req.params;
 
@@ -266,6 +266,7 @@ app.post('/api/returnBook', async (req, res) => {
   }
 });
 
+// 借閱副本
 app.post('/api/borrowBook', async (req, res) => {
   const { userID, bookID } = req.body;
 
@@ -339,6 +340,7 @@ app.post('/api/borrowBook', async (req, res) => {
   }
 });
 
+// 查詢最多借閱的書
 app.get("/api/mostBorrowedBooks", async (req, res) => {
   try {
     const pool = await connectToDB();

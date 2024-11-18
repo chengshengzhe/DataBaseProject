@@ -37,7 +37,7 @@ export const BookList = (userID) => {
       setTimeout(() => setIsRefreshing(false), 1000);
     };
     
-  // 借閱書籍
+  // 借閱
   const borrowBook = async (bookID) => {
     const accountInfo = JSON.parse(localStorage.getItem("accountInfo"));
     const userID = parseInt(accountInfo.userID, 10);

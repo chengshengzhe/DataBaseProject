@@ -9,7 +9,6 @@ export const Account = () => {
   const [SignInName, setSignInName] = useState('');
   const [SignInPassword, setSignInPassword] = useState('');
   const [borrowedBooks, setBorrowedBooks] = useState([]);
-  const [returnedBooks, setReturnedBooks] = useState([]);
   const [loggedIn, setSignedIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [accountInfo, setAccountInfo] = useState(null);
@@ -39,7 +38,7 @@ export const Account = () => {
     }
   }, [accountInfo]);
   
-
+  //註冊
   const handleSignUp = async () => {
     if (!regName || !regEmail || !regPassword) {
       showMessage("所有欄位均為必填", "error");
@@ -72,6 +71,7 @@ export const Account = () => {
     }
   };
 
+  //登入
   const handleSignIn = async () => {
     if (!SignInName || !SignInPassword) {
       showMessage("所有欄位均為必填", "error");
@@ -105,6 +105,7 @@ export const Account = () => {
     }
   };
 
+  //登出
   const handleSignout = () => {
     setSignedIn(false);
     setAccountInfo(null);
@@ -136,7 +137,7 @@ export const Account = () => {
     }
 };
 
-
+// 獲取借閱書本
   const fetchBorrowedBooks = async () => {
     if (!accountInfo?.userID) return;
   
@@ -149,6 +150,7 @@ export const Account = () => {
       showMessage("伺服器錯誤", "error");
     }
   };
+
   return (
     <div>
       {loggedIn ? (
