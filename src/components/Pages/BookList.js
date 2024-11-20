@@ -22,7 +22,11 @@ export const BookList = (userID) => {
   const fetchBooks = () => {
     setIsRefreshing(true);
     const Books_URL = config.BOOKS_URL;
-    fetch(Books_URL)
+    fetch(Books_URL,{
+      headers: {
+        "ngrok-skip-browser-warning": "true", // 加入跳過ngrok確認的header
+      },
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -30,6 +34,7 @@ export const BookList = (userID) => {
         return response.json();
       })
       .then(data => {
+        console.log("Fetched books data:", data);
         setBooks(data);
         setIsFetched(true);
       })

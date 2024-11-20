@@ -51,6 +51,7 @@ export const Account = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning":"true",
         },
         body: JSON.stringify({ username: regName, email: regEmail, password: regPassword }),
       });
@@ -83,6 +84,7 @@ export const Account = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "ngrok-skip-browser-warning":"true",
         },
         body: JSON.stringify({ username: SignInName, password: SignInPassword }),
       });
@@ -119,6 +121,7 @@ export const Account = () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                "ngrok-skip-browser-warning":"true",
             },
             body: JSON.stringify({ copyID, userID: accountInfo.userID }),
         });
@@ -142,7 +145,11 @@ export const Account = () => {
     if (!accountInfo?.userID) return;
   
     try {
-      const response = await fetch(`${config.BACKEND_URL}/api/userBooks/${accountInfo.userID}`);
+      const response = await fetch(`${config.BACKEND_URL}/api/userBooks/${accountInfo.userID}`,{
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+        },
+      });
       const data = await response.json();
       setBorrowedBooks(data);
     } catch (err) {

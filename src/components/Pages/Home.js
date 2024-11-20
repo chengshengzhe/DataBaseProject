@@ -30,13 +30,18 @@ export const Home = () => {
     }
   }, []);
 
+  //獲取最多借閱書本
   const fetchMostBorrowedBooks = async () => {
     if (activeTab === "popularBooks") {
       setActiveTab(null);
       return;
     }
     try {
-      const response = await fetch(`${config.BACKEND_URL}/api/mostBorrowedBooks`);
+      const response = await fetch(`${config.BACKEND_URL}/api/mostBorrowedBooks`,{
+        headers: {
+          "ngrok-skip-browser-warning": "true",
+        },
+      });
       const data = await response.json();
       if (response.ok) {
         setMostBorrowedBook(data.mostBorrowed);
@@ -50,6 +55,7 @@ export const Home = () => {
     }
   };
 
+  //獲得借閱紀錄
   const fetchBorrowingRecords = async () => {
     if (activeTab === "borrowingRecords") {
       setActiveTab(null);
@@ -62,7 +68,11 @@ export const Home = () => {
     }
 
     try {
-      const response = await fetch(`${config.BACKEND_URL}/api/userBooks/${accountInfo.userID}/returned`);
+      const response = await fetch(`${config.BACKEND_URL}/api/userBooks/${accountInfo.userID}/returned`,{
+        headers: {
+          "ngrok-skip-browser-warning": "true", // 加入跳過確認的請求頭
+        },
+      });
       const data = await response.json();
 
       if (response.ok) {

@@ -1,4 +1,4 @@
-import https from 'https';
+import http from 'http';
 import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
@@ -10,11 +10,7 @@ dotenv.config({ path: '../userinfo.env' });
 const app = express();
 const PORT = 5000;
 
-// SSL 憑證
-const httpsOptions = {
-  key: fs.readFileSync('./certs/key.pem'),
-  cert: fs.readFileSync('./certs/cert.pem'),
-};
+
 
 // 資料庫連接設定
 const dbConfig = {
@@ -51,6 +47,11 @@ async function testQuery() {
 
 app.use(cors());
 app.use(express.json());
+
+app.use(cors({
+  origin: '*', // 確保與你的前端 URL 一致
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+}));
 
 // 查詢書籍列表和可用副本數量
 app.get("/api/books", async (req, res) => {
@@ -375,10 +376,7 @@ app.get("/api/mostBorrowedBooks", async (req, res) => {
   }
 });
 
-// 啟動伺服器
-https.createServer(httpsOptions, app).listen(PORT, () => {
-  console.log(`Server is running on https://localhost:${PORT}`);
+http.createServer(app).listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
   testQuery();
 });
-
-
