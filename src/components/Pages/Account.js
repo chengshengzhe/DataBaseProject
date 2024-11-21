@@ -114,6 +114,8 @@ export const Account = () => {
     localStorage.removeItem('accountInfo');
     showMessage("登出成功", "success");
   };
+
+  //歸還書籍
   const handleReturnBook = async (copyID) => {
     console.log("Return Request:", { copyID, userID: accountInfo.userID }); 
     try {
@@ -171,6 +173,7 @@ export const Account = () => {
               {borrowedBooks.map(book => (
                 <li key={book.borrowID} className="borrowed-book-item">
                   <strong>{book.title}</strong> <h>_</h>by {book.author} (Due: {new Date(book.dueDate).toLocaleDateString()})
+                  <span>_Copy Number: { book.copyID - (book.bookID-1) * 25}</span>
                   <button
                   className="return-button"
                   onClick={() => handleReturnBook(book.copyID)}
