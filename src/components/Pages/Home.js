@@ -70,7 +70,7 @@ export const Home = () => {
     try {
       const response = await fetch(`${config.BACKEND_URL}/api/userBooks/${accountInfo.userID}/returned`,{
         headers: {
-          "ngrok-skip-browser-warning": "true", // 加入跳過確認的請求頭
+          "ngrok-skip-browser-warning": "true", // 加入跳過確認的標頭
         },
       });
       const data = await response.json();

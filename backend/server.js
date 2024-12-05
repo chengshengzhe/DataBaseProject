@@ -49,7 +49,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use(cors({
-  origin: '*', // 確保與你的前端 URL 一致
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
